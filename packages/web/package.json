@@ -15,7 +15,7 @@
     "chart.js": "^4.4.0",
     "chartjs-plugin-datalabels": "^2.2.0",
     "moment": "^2.29.4",
-    "next": "^14.2.10",
+    "next": "^14.2.15",
     "next-auth": "^4.24.7",
     "prom-client": "^15.1.2",
     "ramda": "^0.29.1",
