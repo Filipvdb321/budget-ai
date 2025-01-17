@@ -24,7 +24,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "mongodb": "^6.3.0",
-    "mongoose": "^8.8.3",
+    "mongoose": "^8.9.5",
     "openai": "^4.20.1",
     "path-to-regexp": "^0.1.12",
     "prom-client": "^15.1.2",
