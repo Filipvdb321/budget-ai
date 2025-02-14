@@ -86,3 +86,45 @@ PYTHONPATH=. python -m pytest app/tests/test_prediction_api.py -v
 ```
 
 Note: Recording new fixtures will use real data from your YNAB budget and MongoDB database. Make sure your `.env` file is properly configured.
+
+## Testing
+
+### Running Tests
+To run the tests:
+```bash
+python -m pytest tests/
+```
+
+To run tests with verbose output:
+```bash
+python -m pytest tests/ -v
+```
+
+### Code Coverage
+You can check the code coverage in different ways:
+
+1. Terminal output with missing lines:
+```bash
+python -m pytest tests/ --cov=app --cov-report=term-missing -v
+```
+
+2. Generate an HTML report (recommended for detailed analysis):
+```bash
+python -m pytest tests/ --cov=app --cov-report=html
+```
+The report will be generated in the `htmlcov` directory. Open `htmlcov/index.html` in your browser to view it.
+
+3. Generate an XML report (useful for CI/CD):
+```bash
+python -m pytest tests/ --cov=app --cov-report=xml
+```
+
+You can also run tests for specific functions:
+```bash
+python -m pytest tests/ -k "test_function_name"
+```
+
+Or show only missing coverage:
+```bash
+python -m pytest tests/ --cov=app --cov-report=term-missing:skip-covered
+```
