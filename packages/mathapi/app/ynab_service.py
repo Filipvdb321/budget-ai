@@ -1,7 +1,7 @@
-from ynab_api import fetch, get_uncategorized_transactions
-from categories_api import get_categories_for_budget
-from ai_api import suggest_category
-from budget_api import get_objectid_for_budget, convert_objectid_to_str
+from app.ynab_api import fetch, get_uncategorized_transactions
+from app.ai_api import suggest_category
+from app.categories_api import get_categories_for_budget
+from app.budget_api import get_objectid_for_budget, convert_objectid_to_str
 import logging
 
 def apply_suggested_categories_service(budget_uuid):
