@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@sentry/cli": "^2.38.2",
-    "@sentry/node": "^8.37.1",
+    "@sentry/node": "^8.49.0",
     "@sentry/profiling-node": "^8.37.1",
     "common-ts": "*",
     "cors": "^2.8.5",
