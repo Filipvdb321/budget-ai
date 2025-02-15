@@ -28,10 +28,11 @@ app = Flask(__name__)
 # Setup CORS
 CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
 CORS(app, resources={
-    r"/balance-prediction/*": {
+    r"/*": {
         "origins": CORS_ORIGINS,
-        "methods": ["GET", "OPTIONS"],
-        "allow_headers": ["Authorization", "Content-Type"]
+        "methods": ["GET", "POST", "PUT", "OPTIONS"],
+        "allow_headers": ["Authorization", "Content-Type"],
+        "supports_credentials": True
     }
 })
 
@@ -151,14 +152,19 @@ def get_prediction():
         if not user:
             return jsonify({"message": "User not found"}), 401
             
-        budget_id = request.args.get('budget_id')
-        if not budget_id:
+        budget_uuid = request.args.get('budget_id')
+        if not budget_uuid:
             return jsonify({"message": "No budget_id provided"}), 400
             
         days_ahead = int(request.args.get('days_ahead', 300))
         
-        # Get budget and verify ownership
-        budget = get_budget(budget_id, user)
+        # First get the MongoDB ObjectId for the budget
+        budget_id = get_objectid_for_budget(budget_uuid)
+        if not budget_id:
+            return jsonify({"message": "Budget not found"}), 404
+            
+        # Then get the full budget document and verify ownership
+        budget = get_budget(budget_uuid, user)
         if not budget:
             return jsonify({"message": "Budget not found or access denied"}), 404
             
@@ -167,13 +173,27 @@ def get_prediction():
         if not ynab_connection:
             return jsonify({"message": "No YNAB connection"}), 400
             
-        # Get prediction
-        projection = projected_balances_for_budget(
-            budget_uuid=budget_id,
-            days_ahead=days_ahead,
-            access_token=ynab_connection.get('accessToken')
-        )
-        return jsonify(projection)
+        # Load simulations
+        simulations = load_simulations_folder()
+        
+        # Fetch required data
+        future_transactions = get_scheduled_transactions(budget_uuid)
+        categories = get_categories_for_budget(budget_id)
+        accounts = get_accounts_for_budget(budget_id)
+
+        # Process each simulation and collect results
+        results = {}
+        for simulation_name, simulation_data in simulations.items():
+            try:
+                projected_balances = project_daily_balances_with_reasons(
+                    accounts, categories, future_transactions, days_ahead, simulation_data
+                )
+                results[simulation_name] = projected_balances
+            except Exception as e:
+                logger.warning(f"Error processing simulation '{simulation_name}': {str(e)}")
+                continue
+
+        return jsonify(results)
         
     except ValueError as e:
         logger.warning(f"Invalid input: {str(e)}")

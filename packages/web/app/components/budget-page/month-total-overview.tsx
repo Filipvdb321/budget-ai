@@ -1,10 +1,13 @@
+"use client";
 import {
   MonthTotal, Category, formatAmount,
   totalPercentageSpent, MonthlyForcast
 } from "common-ts";
 
 import { CategoryPieChart } from "../charts/category-pie-chart";
+import { PredictionChart } from "../charts/prediction-chart";
 import { percentageToStatusClass } from "../../utils";
+import { useState } from "react";
 
 type Props = {
   budgetUuid: string;
@@ -14,6 +17,9 @@ type Props = {
   forecast: MonthlyForcast;
   categories: Category[];
 };
+
+type TabType = "categories" | "prediction";
+
 const MonthTotalOverview = ({
   budgetUuid,
   month,
@@ -22,6 +28,7 @@ const MonthTotalOverview = ({
   forecast,
   categories,
 }: Props) => {
+  const [selectedTab, setSelectedTab] = useState<TabType>("categories");
   const percentage = totalPercentageSpent(monthTotal);
 
   const statusClass = percentageToStatusClass(percentage);
@@ -29,7 +36,7 @@ const MonthTotalOverview = ({
     <div className="card bg-base-100 shadow-xl mb-5">
       <div className="card-body p-0.5 sm:p-5">
         <div className="flex flex-wrap w-full">
-          <div className="w-full md:w-1/2 lg:w-1/2 mb-5 md:mb-0 md:mb-0">
+          <div className="w-full md:w-1/2 lg:w-1/2 mb-5 md:mb-0">
             <TotalTable
               monthTotal={monthTotal}
               forecast={forecast}
@@ -38,11 +45,35 @@ const MonthTotalOverview = ({
             />
           </div>
           <div className="w-full md:w-1/2 lg:w-1/2">
-            <CategoryPieChart
-              month={month}
-              categories={categories}
-              budgetUuid={budgetUuid}
-            />
+            <div className="tabs tabs-boxed mb-4 justify-center">
+              <button
+                className={`tab ${selectedTab === "categories" ? "tab-active" : ""}`}
+                onClick={() => setSelectedTab("categories")}
+              >
+                Categories
+              </button>
+              <button
+                className={`tab ${selectedTab === "prediction" ? "tab-active" : ""}`}
+                onClick={() => setSelectedTab("prediction")}
+              >
+                Prediction
+              </button>
+            </div>
+
+            {selectedTab === "categories" && (
+              <CategoryPieChart
+                month={month}
+                categories={categories}
+                budgetUuid={budgetUuid}
+              />
+            )}
+            {selectedTab === "prediction" && (
+              <PredictionChart
+                forecast={forecast}
+                categories={categories}
+                budgetId={budgetUuid}
+              />
+            )}
           </div>
         </div>
       </div>
