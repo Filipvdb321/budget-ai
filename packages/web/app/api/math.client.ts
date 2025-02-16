@@ -23,7 +23,7 @@ const mathApiFetch = async (
     }
     const { token } = await tokenResponse.json();
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_MATH_API_URL || "http://localhost:5000";
+    const apiBaseUrl = process.env.PUBLIC_MATH_API_URL || "http://localhost:5000";
     const apiUrl = `${apiBaseUrl}/${path}`;
     console.log(`Calling Math API: ${apiUrl}`);
 

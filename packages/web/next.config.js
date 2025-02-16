@@ -2,7 +2,7 @@
 const nextConfig = {}
 
 // Enable Sentry unless explicitly disabled
-const isSentryEnabled = !process.env.SENTRY_DISABLED && !!process.env.SENTRY_AUTH_TOKEN;
+const isSentryEnabled = !process.env.SENTRY_DISABLED;
 
 // Default config without Sentry
 let config = nextConfig;

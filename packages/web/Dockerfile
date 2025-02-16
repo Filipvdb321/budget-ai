@@ -1,6 +1,10 @@
 # Use a node image as base
 FROM node:20-alpine AS base
  
+# Add build arguments
+ARG NEXT_PUBLIC_SENTRY_ENABLED=false
+ENV NEXT_PUBLIC_SENTRY_ENABLED=$NEXT_PUBLIC_SENTRY_ENABLED
+
 WORKDIR /app
 
 # Copy the root package.json, package-lock.json
@@ -20,7 +24,7 @@ RUN npm install
 RUN npm run build --workspace common-ts
 
 # Build the web package
-RUN npm run build --workspace web
+RUN NEXT_PUBLIC_SENTRY_ENABLED=false npm run build --workspace web
 
 # Set the working directory to the web package
 WORKDIR /app/packages/web

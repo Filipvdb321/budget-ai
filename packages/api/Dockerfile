@@ -1,7 +1,9 @@
 # Use a node image as base
 FROM node:20-alpine AS base
 
-ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+# Add build arguments
+ARG SENTRY_DISABLED=false
+ENV SENTRY_DISABLED=$SENTRY_DISABLED
 
 WORKDIR /app
 
@@ -16,14 +18,17 @@ COPY ../../tsconfig.json ./
 # Install dependencies and bootstrap with npm workspaces
 RUN npm install
 
-
 # Build the common-ts package first
 RUN npm run build --workspace common-ts
 
-# Build the api package
-RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
-    export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) && \
-    npm run build:api
+# Build the api package - conditionally use Sentry
+RUN if [ "$SENTRY_DISABLED" = "true" ] ; then \
+        npm run build:api ; \
+    else \
+        --mount=type=secret,id=SENTRY_AUTH_TOKEN \
+        export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) && \
+        npm run build:api ; \
+    fi
 
 # Set the working directory to the api package
 WORKDIR /app/packages/api
