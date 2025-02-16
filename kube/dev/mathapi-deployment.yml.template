@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: budget-mathapi-app
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: budget-mathapi
+  template:
+    metadata:
+      labels:
+        app: budget-mathapi
+    spec:
+      containers:
+        - name: budget-mathapi
+          image: filipvdb321/budget-mathapi:${IMAGE_TAG}
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PYTHONPATH
+              value: /app
+            - name: FLASK_APP
+              value: app/app.py
+            - name: FLASK_ENV
+              value: production
+            - name: FLASK_DEBUG
+              value: "0"
+          envFrom:
+            - secretRef:
+                name: mathapi-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20 

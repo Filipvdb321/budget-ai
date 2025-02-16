@@ -22,10 +22,10 @@ RUN npm install
 RUN npm run build --workspace common-ts
 
 # Build the api package - conditionally use Sentry
-RUN if [ "$SENTRY_DISABLED" = "true" ] ; then \
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
+    if [ "$SENTRY_DISABLED" = "true" ] ; then \
         npm run build:api ; \
     else \
-        --mount=type=secret,id=SENTRY_AUTH_TOKEN \
         export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) && \
         npm run build:api ; \
     fi

@@ -46,6 +46,14 @@ jobs:
           push: true
           tags: filipvdb321/budget-ai:${{ github.sha }}
 
+      - name: Build and push Docker mathapi image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./packages/mathapi/Dockerfile
+          push: true
+          tags: filipvdb321/budget-mathapi:${{ github.sha }}
+
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
@@ -62,6 +70,10 @@ jobs:
       - name: Replace image tag in ai Kubernetes deployment file
         run: |
           envsubst '$IMAGE_TAG' < ./kube/dev/ai-deployment.yml.template > ./kube/dev/ai-deployment.yml
+
+      - name: Replace image tag in mathapi Kubernetes deployment file
+        run: |
+          envsubst '$IMAGE_TAG' < ./kube/dev/mathapi-deployment.yml.template > ./kube/dev/mathapi-deployment.yml
 
       - name: Print IMAGE_TAG variable
         run: |
@@ -86,6 +98,10 @@ jobs:
         run: |
           kubectl apply -f ./kube/dev/ai-deployment.yml
 
+      - name: Deploy mathapi config to Kubernetes
+        run: |
+          kubectl apply -f ./kube/dev/mathapi-deployment.yml
+
       - name: Deploy web service to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/web-service.yml
@@ -95,6 +111,9 @@ jobs:
       - name: Deploy ai service to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/ai-service.yml
+      - name: Deploy mathapi service to Kubernetes
+        run: |
+          kubectl apply -f ./kube/dev/mathapi-service.yml
 
       - name: Verify web deployment
         run: kubectl rollout status deployment/budget-web-app -n dev
@@ -104,3 +123,6 @@ jobs:
 
       - name: Verify ai deployment
         run: kubectl rollout status deployment/budget-ai-app -n dev
+
+      - name: Verify mathapi deployment
+        run: kubectl rollout status deployment/budget-mathapi-app -n dev
