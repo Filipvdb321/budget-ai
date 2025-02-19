@@ -13,7 +13,6 @@ services:
       SENTRY_DISABLED: "true"
     depends_on:
       - api
-      - ai
     networks:
       - default
   api:
@@ -32,16 +31,6 @@ services:
     networks:
       - default
 
-  ai:
-    build:
-      context: .
-      dockerfile: packages/ai/Dockerfile
-    ports:
-      - "8080:8080"
-    env_file:
-      - ./packages/ai/.env
-    networks:
-      - default
   mathapi:
     build:
       context: .

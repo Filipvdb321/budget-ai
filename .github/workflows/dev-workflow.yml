@@ -20,9 +20,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
       - name: Build and push Docker web image
         uses: docker/build-push-action@v2
         with:
@@ -41,14 +38,6 @@ jobs:
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: filipvdb321/budget-api:${{ github.sha }}
 
-      - name: Build and push Docker ai image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./packages/ai/Dockerfile
-          push: true
-          tags: filipvdb321/budget-ai:${{ github.sha }}
-
       - name: Build and push Docker mathapi image
         uses: docker/build-push-action@v2
         with:
@@ -64,17 +53,6 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - name: Save Digital Ocean kubeconfig
-        run: doctl kubernetes cluster kubeconfig save k8s-1-vandenit-ams3-dev
-
-      - name: Verify Docker images
-        run: |
-          echo "Verifying Docker images..."
-          docker pull filipvdb321/budget-web:${{ github.sha }}
-          docker pull filipvdb321/budget-api:${{ github.sha }}
-          docker pull filipvdb321/budget-ai:${{ github.sha }}
-          docker pull filipvdb321/budget-mathapi:${{ github.sha }}
-
       - name: Replace image tag in web Kubernetes deployment file
         run: |
           envsubst '$IMAGE_TAG' < ./kube/dev/web-deployment.yml.template > ./kube/dev/web-deployment.yml
@@ -83,17 +61,12 @@ jobs:
         run: |
           envsubst '$IMAGE_TAG' < ./kube/dev/api-deployment.yml.template > ./kube/dev/api-deployment.yml
 
-      - name: Replace image tag in ai Kubernetes deployment file
-        run: |
-          envsubst '$IMAGE_TAG' < ./kube/dev/ai-deployment.yml.template > ./kube/dev/ai-deployment.yml
-
       - name: Replace image tag in mathapi Kubernetes deployment file
         run: |
           envsubst '$IMAGE_TAG' < ./kube/dev/mathapi-deployment.yml.template > ./kube/dev/mathapi-deployment.yml
 
-      - name: Print IMAGE_TAG variable
-        run: |
-          echo $IMAGE_TAG
+      - name: Save Digital Ocean kubeconfig
+        run: doctl kubernetes cluster kubeconfig save k8s-1-vandenit-ams3-dev
 
       - name: Deploy all config to Kubernetes
         run: |
@@ -107,10 +80,6 @@ jobs:
         run: |
           kubectl apply -f ./kube/dev/api-deployment.yml
 
-      - name: Deploy ai config to Kubernetes
-        run: |
-          kubectl apply -f ./kube/dev/ai-deployment.yml
-
       - name: Deploy mathapi config to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/mathapi-deployment.yml
@@ -121,9 +90,6 @@ jobs:
       - name: Deploy api service to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/api-service.yml
-      - name: Deploy ai service to Kubernetes
-        run: |
-          kubectl apply -f ./kube/dev/ai-service.yml
       - name: Deploy mathapi service to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/mathapi-service.yml
@@ -133,9 +99,6 @@ jobs:
 
       - name: Verify api deployment
         run: kubectl rollout status deployment/budget-api-app -n dev
-
-      - name: Verify ai deployment
-        run: kubectl rollout status deployment/budget-ai-app -n dev
 
       - name: Verify mathapi deployment
         run: kubectl rollout status deployment/budget-mathapi-app -n dev
