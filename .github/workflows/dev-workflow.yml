@@ -38,14 +38,6 @@ jobs:
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: filipvdb321/budget-api:${{ github.sha }}
 
-      - name: Build and push Docker ai image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./packages/mathapi/Dockerfile
-          push: true
-          tags: filipvdb321/budget-ai:${{ github.sha }}
-
       - name: Build and push Docker mathapi image
         uses: docker/build-push-action@v2
         with:
@@ -66,10 +58,6 @@ jobs:
       - name: Replace image tag in api Kubernetes deployment file
         run: |
           envsubst '$IMAGE_TAG' < ./kube/dev/api-deployment.yml.template > ./kube/dev/api-deployment.yml
-
-      - name: Replace image tag in mathapi Kubernetes deployment file
-        run: |
-          envsubst '$IMAGE_TAG' < ./kube/dev/ai-deployment.yml.template > ./kube/dev/ai-deployment.yml
 
       - name: Replace image tag in mathapi Kubernetes deployment file
         run: |
@@ -94,10 +82,6 @@ jobs:
         run: |
           kubectl apply -f ./kube/dev/api-deployment.yml
 
-      - name: Deploy ai config to Kubernetes
-        run: |
-          kubectl apply -f ./kube/dev/mathapi-deployment.yml
-
       - name: Deploy mathapi config to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/mathapi-deployment.yml
@@ -108,9 +92,7 @@ jobs:
       - name: Deploy api service to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/api-service.yml
-      - name: Deploy mathapi service to Kubernetes
-        run: |
-          kubectl apply -f ./kube/dev/ai-service.yml
+
       - name: Deploy mathapi service to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/mathapi-service.yml
@@ -120,9 +102,6 @@ jobs:
 
       - name: Verify api deployment
         run: kubectl rollout status deployment/budget-api-app -n dev
-
-      - name: Verify ai deployment
-        run: kubectl rollout status deployment/budget-ai-app -n dev
 
       - name: Verify mathapi deployment
         run: kubectl rollout status deployment/budget-mathapi-app -n dev
