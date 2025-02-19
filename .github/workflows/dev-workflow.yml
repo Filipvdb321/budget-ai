@@ -38,6 +38,14 @@ jobs:
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: filipvdb321/budget-api:${{ github.sha }}
 
+      - name: Build and push Docker ai image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./packages/mathapi/Dockerfile
+          push: true
+          tags: filipvdb321/budget-ai:${{ github.sha }}
+
       - name: Build and push Docker mathapi image
         uses: docker/build-push-action@v2
         with:
@@ -45,8 +53,6 @@ jobs:
           file: ./packages/mathapi/Dockerfile
           push: true
           tags: filipvdb321/budget-mathapi:${{ github.sha }}
-          cache-from: type=registry,ref=filipvdb321/budget-mathapi:buildcache
-          cache-to: type=registry,ref=filipvdb321/budget-mathapi:buildcache,mode=max
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -63,7 +69,15 @@ jobs:
 
       - name: Replace image tag in mathapi Kubernetes deployment file
         run: |
+          envsubst '$IMAGE_TAG' < ./kube/dev/ai-deployment.yml.template > ./kube/dev/ai-deployment.yml
+
+      - name: Replace image tag in mathapi Kubernetes deployment file
+        run: |
           envsubst '$IMAGE_TAG' < ./kube/dev/mathapi-deployment.yml.template > ./kube/dev/mathapi-deployment.yml
+
+      - name: Print IMAGE_TAG variable
+        run: |
+          echo $IMAGE_TAG
 
       - name: Save Digital Ocean kubeconfig
         run: doctl kubernetes cluster kubeconfig save k8s-1-vandenit-ams3-dev
@@ -80,6 +94,10 @@ jobs:
         run: |
           kubectl apply -f ./kube/dev/api-deployment.yml
 
+      - name: Deploy ai config to Kubernetes
+        run: |
+          kubectl apply -f ./kube/dev/mathapi-deployment.yml
+
       - name: Deploy mathapi config to Kubernetes
         run: |
           kubectl apply -f ./kube/dev/mathapi-deployment.yml
@@ -92,6 +110,9 @@ jobs:
           kubectl apply -f ./kube/dev/api-service.yml
       - name: Deploy mathapi service to Kubernetes
         run: |
+          kubectl apply -f ./kube/dev/ai-service.yml
+      - name: Deploy mathapi service to Kubernetes
+        run: |
           kubectl apply -f ./kube/dev/mathapi-service.yml
 
       - name: Verify web deployment
@@ -99,6 +120,9 @@ jobs:
 
       - name: Verify api deployment
         run: kubectl rollout status deployment/budget-api-app -n dev
+
+      - name: Verify ai deployment
+        run: kubectl rollout status deployment/budget-ai-app -n dev
 
       - name: Verify mathapi deployment
         run: kubectl rollout status deployment/budget-mathapi-app -n dev

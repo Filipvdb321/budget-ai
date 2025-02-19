@@ -101,6 +101,10 @@ kubectl create secret generic mathapi-secrets \
 --from-env-file=.dev-mathapi-secrets.env \
 --namespace=dev
 
+kubectl create secret generic mathapi-secrets \
+--from-env-file=.dev-mathapi-secrets.env \
+--namespace=dev
+
 ```
 
 # get all secrets
